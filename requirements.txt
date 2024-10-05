@@ -1,0 +1,7 @@
+polyleven==0.8
+transformers==4.30.2
+tokenizers==0.13.3
+sentencepiece==0.2.0
+sequence-models==1.2.0
+wandb
+tqdm

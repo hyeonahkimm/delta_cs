@@ -91,7 +91,7 @@ class GFNGeneratorExploration:
         # Construct the candiate pool by randomly mutating the sequences. (line 2 of Algorithm 2 in the paper)
         # An implementation heuristics: only mutating sequences near the proximal frontier.
         generator = GFNLSTMGenerator(self.args, max_len=len(self.wt_sequence), partition_init=self.args.partition_init)
-        candidates = self._train_generator(generator, frontier_neighbors, t=self.round)
+        candidates = self._train_generator(generator, t=self.round)
         
         candidate_pool = []
         for candidate_sequence in candidates:
@@ -148,11 +148,11 @@ class GFNGeneratorExploration:
         
         return query_batch, None  # candidate_pool #
     
-    def _train_generator(self, generator, frontier_neighbors, t=0):
+    def _train_generator(self, generator, t=0):
         losses = []
         candidates = []
         batch_size = int(self.args.gen_train_batch_size / 2)
-        p_bar = tqdm(range(self.args.generator_train_epochs)) # tqdm(range((self.args.num_model_queries_per_round - self.num_queries_per_round * self.args.K) // batch_size))
+        p_bar = tqdm(range(self.args.generator_train_epochs))
         
         for it in p_bar:
             p_bar_log = {}
