@@ -8,7 +8,7 @@ Our codes are implemented based on
 - Biological Sequence Design with GFlowNets ([paper](https://proceedings.mlr.press/v162/jain22a/jain22a.pdf), [code](https://github.com/MJ10/BioSeq-GFN-AL))
 
 
-###  Setup
+##  Setup
 ### **Step1. Create env**
 
 ```bash
