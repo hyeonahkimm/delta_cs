@@ -60,9 +60,9 @@ python run_amp_delta.py --acq_fn ucb --radius_option adaptive --max_radius 0.5 -
 #### RNA and protein designs (FLEXS)
 ```
 cd flexs
-python run_flexs.py --alg=gfn-al --net=cnn --task=rna1 --radius_option adaptive --max_radius 0.5 --sigma_coeff 5
-python run_flexs.py --alg=gfn-al --net=cnn --task=gfp --radius_option adaptive --max_radius 0.05 --sigma_coeff 1
-python run_flexs.py --alg=gfn-al --net=cnn --task=aav --radius_option adaptive --max_radius 0.05 --sigma_coeff 0.1
+python run_flexs.py --alg=gfn-al --net=cnn --ensemble_rule ucb --task=rna1 --radius_option adaptive --max_radius 0.5 --sigma_coeff 5
+python run_flexs.py --alg=gfn-al --net=cnn --ensemble_rule ucb --task=gfp --radius_option adaptive --max_radius 0.05 --sigma_coeff 1
+python run_flexs.py --alg=gfn-al --net=cnn --ensemble_rule ucb --task=aav --radius_option adaptive --max_radius 0.05 --sigma_coeff 0.1
 ```
 
 `rna1`, `rna2`, and `rna3` correspond to RNA-A, RNA-B, and RNA-C, respectively.

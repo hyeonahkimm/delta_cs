@@ -86,19 +86,19 @@ def get_args():
 def get_initial_dataset(task_name, num_init=-1):
     stoi = dict(enumerate(task_collection[task_name.lower()]))
     if task_name.lower() == 'tfbind':
-        encoded = np.load("./dataset/tfbind/tfbind-x-init.npy")
+        encoded = np.load("../dataset/tfbind/tfbind-x-init.npy")
         x = np.array([''.join([stoi[c] for c in seq]) for seq in encoded])
         y = np.load("./dataset/tfbind/tfbind-y-init.npy").reshape(-1)
     elif task_name.lower().startswith("rna"):
-        encoded = np.load(f"./dataset/rna/{task_name.upper()}_x.npy")
+        encoded = np.load(f"../dataset/rna/{task_name.upper()}_x.npy")
         x = np.array([''.join([stoi[c] for c in seq]) for seq in encoded])
-        y = np.load(f"./dataset/rna/{task_name.upper()}_y.npy").reshape(-1)
+        y = np.load(f"../dataset/rna/{task_name.upper()}_y.npy").reshape(-1)
     elif task_name.lower() == 'gfp':
-        x = np.load("./dataset/gfp/gfp-x-init.npy")
-        y = np.load("./dataset/gfp/gfp-y-init.npy").reshape(-1)
+        x = np.load("../dataset/gfp/gfp-x-init.npy")
+        y = np.load("../dataset/gfp/gfp-y-init.npy").reshape(-1)
     elif task_name.lower() == 'aav':
-        x = np.load("./dataset/aav/nonzero-aav-x-init.npy")
-        y = np.load("./dataset/aav/nonzero-aav-y-init.npy").reshape(-1)
+        x = np.load("../dataset/aav/nonzero-aav-x-init.npy")
+        y = np.load("../dataset/aav/nonzero-aav-y-init.npy").reshape(-1)
     else:
         raise ValueError(f"Unknown task: {task_name}")
     if num_init > 0:
