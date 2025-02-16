@@ -47,21 +47,22 @@ pip install -r requirements.txt
 #### TF-Bind-8
 ```
 cd BioSeq-GFN-AL
-python run_tfbind_delta.py --gen_do_explicit_Z 1 --acq_fn ucb --radius_option proxy_var --min_radius 0.5 --max_radius 0.5 --sigma_coeff 5
+python run_tfbind_delta.py --acq_fn ucb --radius_option adaptive --max_radius 0.5 --sigma_coeff 5
+python run_tfbind_delta.py --acq_fn ucb --radius_option adaptive --max_radius 0.5 --sigma_coeff 5 --hard_tf
 ```
 
 #### AMP
 ```
 cd BioSeq-GFN-AL
-python run_amp_delta.py --gen_do_explicit_Z 1 --acq_fn ucb --radius_option proxy_var --min_radius 0.5 --max_radius 0.5 --sigma_coeff 1 --use_rank_based_proxy_training
+python run_amp_delta.py --acq_fn ucb --radius_option adaptive --max_radius 0.5 --sigma_coeff 1
 ``` 
 
-#### RNA and protein designs
+#### RNA and protein designs (FLEXS)
 ```
-cd proximal-exploration
-python run_flexs.py --alg=gfn-al --net=cnn --task=rna1 --radius_option proxy_var --min_radius 0.5 --max_radius 0.5 --sigma_coeff 5 --use_rank_based_proxy_training
-python run_flexs.py --alg=gfn-al --net=cnn --task=gfp --radius_option proxy_var --min_radius 0.05 --max_radius 0.05 --sigma_coeff 1 --use_rank_based_proxy_training
-python run_flexs.py --alg=gfn-al --net=cnn --task=aav --radius_option proxy_var --min_radius 0.05 --max_radius 0.05 --sigma_coeff 0.1 --use_rank_based_proxy_training
+cd flexs
+python run_flexs.py --alg=gfn-al --net=cnn --task=rna1 --radius_option adaptive --max_radius 0.5 --sigma_coeff 5
+python run_flexs.py --alg=gfn-al --net=cnn --task=gfp --radius_option adaptive --max_radius 0.05 --sigma_coeff 1
+python run_flexs.py --alg=gfn-al --net=cnn --task=aav --radius_option adaptive --max_radius 0.05 --sigma_coeff 0.1
 ```
 
 `rna1`, `rna2`, and `rna3` correspond to RNA-A, RNA-B, and RNA-C, respectively.

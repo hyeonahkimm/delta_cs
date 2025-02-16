@@ -23,20 +23,10 @@ def get_args():
     parser.add_argument("--use_wandb", action="store_true")
     
     parser.add_argument("--save_scores_path", default=".")
-    # parser.add_argument("--save_scores", action="store_true")
     parser.add_argument("--seed", default=0, type=int)
-    # parser.add_argument("--run", default=-1, type=int)
-    # parser.add_argument("--noise_params", action="store_true")
-    # parser.add_argument("--enable_tensorboard", action="store_true")
-    # parser.add_argument("--save_proxy_weights", action="store_true")
-    # parser.add_argument("--use_uncertainty", action="store_true")
     
     args, _ = parser.parse_known_args()
     
-    ############# temp!!
-    parser.add_argument("--rank_based_proxy_training", action="store_true")
-    parser.add_argument("--reward_prioritized", action="store_true")
-        
     if args.task == 'amp':
         parser.add_argument("--num_rounds", default=10, type=int)
         parser.add_argument("--num_queries_per_round", default=1024, type=int) # 10k
@@ -130,7 +120,6 @@ def get_args():
     parser.add_argument("--proxy_num_per_minibatch", default=256, type=int)
     parser.add_argument("--proxy_early_stop_tol", default=5, type=int)
     parser.add_argument("--proxy_early_stop_to_best_params", default=0, type=int)
-    # parser.add_argument("--proxy_num_iterations", default=3000, type=int)
     parser.add_argument("--proxy_num_dropout_samples", default=25, type=int)
     parser.add_argument("--proxy_pos_ratio", default=0.9, type=float)
 
@@ -184,14 +173,14 @@ if __name__=='__main__':
         wandb.run.name = f"{args.name}_{str(args.seed)}_{wandb.run.id}"
         
     if args.method == 'gfn_seq_editor':
-        from lib.algorithms.GFNSeqEditor.runner import GFNSeqEditorRunner, GFNSeqEditorLSTMRunner
+        from lib.algorithms.GFNSeqEditor.runner import GFNSeqEditorLSTMRunner
         args.reward_exp_min = 1e-32
         runner = GFNSeqEditorLSTMRunner(args, oracle, dataset)
     elif args.method == 'gfn_lstm':
         args.reward_exp_min = 1e-32
         from lib.algorithms.gfn_lstm.runner import GFNLSTMRunner
         runner = GFNLSTMRunner(args, oracle, dataset)
-    # train(args, oracle, dataset)
+
     runner.run()
     
     if args.use_wandb:

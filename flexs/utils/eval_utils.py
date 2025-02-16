@@ -39,6 +39,7 @@ class Runner:
         self.num_queries_per_round = args.num_queries_per_round
         self.method = args.alg
         self.use_wandb = args.use_wandb
+        self.init_model = args.init_model
         self.args = args
 
     def run(self, landscape, starting_sequence, model, explorer, starting_dataset=None):
@@ -55,11 +56,8 @@ class Runner:
         for round in range(1, self.num_rounds+1):
             round_start_time = time.time()
             
-            if self.args.use_rank_based_proxy_training:
-                # model.train(self.sequence_buffer, self.fitness_buffer)
-                model.train_prioritized(self.sequence_buffer, self.fitness_buffer)
-            elif self.method is not 'gfn_seq_editor':
-                model.train(self.sequence_buffer, self.fitness_buffer)
+            # model.train(self.sequence_buffer, self.fitness_buffer)
+            model.train_prioritized(self.sequence_buffer, self.fitness_buffer, init_model=self.init_model)
                 
             sequences, model_scores = explorer.propose_sequences(self.results)
             assert len(sequences) <= self.num_queries_per_round
@@ -89,7 +87,7 @@ class Runner:
         )
         print('round: {}  max fitness score: {:.3f}  running time: {:.2f} (sec)'.format(round, self.results['true_score'].max(), running_time))
         if self.use_wandb:
-            top100 = self.results.nlargest(self.args.num_queries_per_round, 'true_score')
+            top100 = self.results.nlargest(128, 'true_score')
             div100 = mean_pairwise_distances(top100['sequence'])
             avg100 = top100['true_score'].mean()
             initial = self.results[self.results['round']==0]['sequence']

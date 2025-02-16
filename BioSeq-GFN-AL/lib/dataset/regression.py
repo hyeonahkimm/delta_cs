@@ -119,6 +119,7 @@ class AMPRegressionDataset(Dataset):
 class BioSeqDataset(Dataset):
     def __init__(self, args, oracle):
         super().__init__(args, oracle)
+        self.hard_tf = args.hard_tf
         self._load_dataset(args.task)
         self.train_added = len(self.train)
         self.val_added = len(self.valid)
@@ -128,7 +129,6 @@ class BioSeqDataset(Dataset):
         if task_name.lower().startswith("rna"):
             x = np.load(f"../dataset/rna/{task_name.upper()}_x.npy")
             y = np.load(f"../dataset/rna/{task_name.upper()}_y.npy").reshape(-1)
-            x, y = x, y
         elif task_name.lower() in ['gfp', 'aav']:
             seqs = np.load(f"../dataset/{task_name}/{task_name}-x-init.npy")
             y = np.load(f"../dataset/{task_name}/{task_name}-y-init.npy").reshape(-1)
@@ -137,15 +137,18 @@ class BioSeqDataset(Dataset):
                 x.append([self.oracle.stoi[c] for c in seq])
             x = np.array(x)
         elif task_name.lower() == 'tfbind':
-            x = np.load(f"../dataset/{task_name}/{task_name}-x-init.npy")
-            y = np.load(f"../dataset/{task_name}/{task_name}-y-init.npy").reshape(-1)
-            # x = np.load(f"../dataset/{task_name}/hard-{task_name}-x-init.npy")
-            # y = np.load(f"../dataset/{task_name}/hard-{task_name}-y-init.npy").reshape(-1)
-            self.x_all = np.load(f"../dataset/{task_name}/{task_name}-x-all.npy")
-            self.y_all = np.load(f"../dataset/{task_name}/{task_name}-y-all.npy")
-            # y[y < 0.3] = 0
-            # self.y_all[self.y_all < 0.3] = 0
-            # import pdb; pdb.set_trace()
+            if self.hard_tf:
+                x = np.load("../dataset/tfbind/hard-tfbind-x-init.npy")
+                y = np.load("../dataset/tfbind/hard-tfbind-y-init.npy").reshape(-1)
+                y[y < 0.3] = 0
+            else:
+                x = np.load("../dataset/tfbind/tfbind-x-init.npy")
+                y = np.load("../dataset/tfbind/tfbind-y-init.npy").reshape(-1)
+            
+            self.x_all = np.load("../dataset/tfbind/tfbind-x-all.npy")
+            self.y_all = np.load("../dataset/tfbind/tfbind-y-all.npy")
+            if self.hard_tf:
+                self.y_all[self.y_all < 0.3] = 0
             top_k = y[np.argsort(y)[::-1][:128]]
             print(top_k.max(), np.percentile(top_k, 50), top_k.mean())
             
@@ -231,63 +234,3 @@ class BioSeqDataset(Dataset):
         if return_as_str:
             return self._tostr(x_holdout), y_holdout
         return x_holdout, y_holdout
-
-
-
-# class GFPDataset(Dataset):
-#     def __init__(self, args, oracle):
-#         super().__init__(args, oracle)
-#         self._load_dataset()
-#         self.train_added = len(self.train)
-#         self.val_added = len(self.valid)
-
-#     def _load_dataset(self):
-#         task = design_bench.make('GFP-Transformer-v0')
-#         task.map_normalize_y()
-#         x = task.x
-#         y = task.y.reshape(-1) 
-#         import pdb; pdb.set_trace()
-#         self.train, self.valid, self.train_scores, self.valid_scores  = train_test_split(x, y, test_size=0.2, random_state=self.rng)
-
-#     def sample(self, n):
-#         indices = np.random.randint(0, len(self.train), n)
-#         return ([self.train[i] for i in indices],
-#                 [self.train_scores[i] for i in indices])
-
-#     def validation_set(self):
-#         return self.valid, self.valid_scores
-
-#     def add(self, batch):
-#         samples, scores = batch
-#         train, val = [], []
-#         train_seq, val_seq = [], []
-#         for x, score in zip(samples, scores):
-#             if np.random.uniform() < (1/10):
-#                 val_seq.append(x)
-#                 val.append(score)
-#             else:
-#                 train_seq.append(x)
-#                 train.append(score)
-#         self.train_scores = np.concatenate((self.train_scores, train), axis=0).reshape(-1)
-#         self.valid_scores = np.concatenate((self.valid_scores, val), axis=0).reshape(-1)
-#         self.train = np.concatenate((self.train, train_seq), axis=0)
-#         self.valid = np.concatenate((self.valid, val_seq), axis=0)
-    
-#     def _tostr(self, seqs):
-#         return ["".join([str(i) for i in x]) for x in seqs]
-
-#     def _top_k(self, data, k):
-#         indices = np.argsort(data[1])[::-1][:k]
-#         topk_scores = data[1][indices]
-#         topk_prots = np.array(data[0])[indices]
-#         return self._tostr(topk_prots), topk_scores
-
-#     def top_k(self, k):
-#         data = (np.concatenate((self.train, self.valid), axis=0), np.concatenate((self.train_scores, self.valid_scores), axis=0))
-#         return self._top_k(data, k)
-
-#     def top_k_collected(self, k):
-#         scores = np.concatenate((self.train_scores[self.train_added:], self.valid_scores[self.val_added:]))
-#         seqs = np.concatenate((self.train[self.train_added:], self.valid[self.val_added:]), axis=0)
-#         data = (seqs, scores)
-#         return self._top_k(data, k)

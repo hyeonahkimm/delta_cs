@@ -12,7 +12,6 @@ def get_acq_fn(args):
     else:
         return NoAF
 
-
 class AcquisitionFunctionWrapper():
     def __init__(self, args, model, l2r, dataset):
         self.model = model
@@ -77,4 +76,3 @@ class EI(AcquisitionFunctionWrapper):
     def update(self, data):
         super().fit(data)
         self.best_f = self._get_best_f(data)
-        

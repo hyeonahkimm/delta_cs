@@ -31,6 +31,7 @@ parser.add_argument("--load_scores_path", default='.')
 # Multi-round
 parser.add_argument("--num_rounds", default=10, type=int)
 parser.add_argument("--task", default="tfbind", type=str)
+parser.add_argument("--hard_tf", action="store_true")
 parser.add_argument("--num_queries_per_round", default=128, type=int)
 parser.add_argument("--vocab_size", default=4, type=int)
 parser.add_argument("--max_len", default=8, type=int)
@@ -94,8 +95,7 @@ parser.add_argument("--min_radius", default=0.5, type=float)
 parser.add_argument("--max_radius", default=0.5, type=float)
 parser.add_argument("--K", default=25, type=int)
 
-parser.add_argument("--rank_based_proxy_training", action="store_true")
-parser.add_argument("--sigma_coeff", default=10, type=float)
+parser.add_argument("--sigma_coeff", default=5, type=float)
 parser.add_argument("--rank_coeff", default=0.01, type=float)
 
 # Proxy
@@ -142,12 +142,15 @@ def filter_len(x, y, max_len):
     return res
 
 def get_current_radius(iter, round, args, rs=None, y=None, sigma=None):
-    if args.radius_option == 'round_linear':
+    if args.radius_option == 'linear':
         return (args.max_radius-args.min_radius) * ((round+1)/args.num_rounds) + args.min_radius
-    elif args.radius_option == 'proxy_var':
+    elif args.radius_option == 'adaptive_linear':
         linear_r = (args.max_radius-args.min_radius) * ((round+1)/args.num_rounds) + args.min_radius * torch.ones(rs.size(0)).to(rs.device)  #(round+1)/args.num_rounds * torch.ones(err.size(0)).to(err.device)
         return (linear_r - args.sigma_coeff * sigma.view(-1)).clamp(0.1, 1)
-    elif args.radius_option == 'fixed':
+    elif args.radius_option == 'adaptive':
+        linear_r = (args.max_radius-args.min_radius) * ((round+1)/args.num_rounds) + args.min_radius * torch.ones(rs.size(0)).to(rs.device)  #(round+1)/args.num_rounds * torch.ones(err.size(0)).to(err.device)
+        return (linear_r - args.sigma_coeff * sigma.view(-1)).clamp(0.1, 1)
+    elif args.radius_option == 'constant':
         return args.max_radius * torch.ones(rs.size(0)).to(rs.device)
     else:
         return 1.
@@ -314,12 +317,9 @@ class RolloutWorker:
                 print(x)
                 print(logits)
                 print(list(model.model.parameters()))
-            # import pdb; pdb.set_trace()
             actions = cat.sample()
             
             guide_actions = torch.tensor(np.array(guide_seqs))[:, t].to(self.device)
-            # unmasked = (1 - masks[:, t]).bool()
-            # actions[unmasked] = guide_actions.long()[unmasked]
             mask = torch.rand(actions.size(0)).to(self.device) > sample_action_prob.view(-1)
             masked_cnt += mask.int()
             actions[mask] = guide_actions.long()[mask]
@@ -339,8 +339,6 @@ class RolloutWorker:
                 traj_dones[i].append(d)
                 states[i] += [a.item()]
         
-        # if K.min() == 0: 
-        #     import pdb; pdb.set_trace()
         return visited, states, traj_states, traj_actions, traj_rewards, traj_dones, self.max_len - masked_cnt
         
     def execute_train_episode_batch_with_delta(self, model, it=0, dataset=None, return_all_visited=False, round=0, use_offline_data=True, guide_seqs=None):
@@ -675,7 +673,6 @@ def train(args, oracle, dataset):  # runner.run()
     tokenizer = get_tokenizer(args)
     args.logger.set_context("iter_0")
     proxy = construct_proxy(args, tokenizer, dataset=dataset)
-    # import pdb; pdb.set_trace()
     proxy.update(dataset)
     rst = None
     for round in range(args.num_rounds):
@@ -702,7 +699,7 @@ def main(args):
     dataset = get_dataset(args, oracle)
     
     if args.use_wandb:
-        proj = 'gfn_al'
+        proj = 'delta-gfn'
         run = wandb.init(project=proj, group=args.task, config=args, reinit=True)
         wandb.run.name = args.name + "_" + str(args.seed) + "_" + wandb.run.id
     train(args, oracle, dataset)
@@ -713,5 +710,5 @@ def main(args):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    assert args.radius_option in ['round_linear', 'proxy_var', 'fixed', 'none']
+    assert args.radius_option in ['linear', 'adaptive_linear', 'adaptive', 'constant', 'none']
     main(args)

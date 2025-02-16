@@ -48,13 +48,9 @@ class DropoutRegressor(nn.Module):
             self.init_model()
         
         for it in tqdm(range(self.proxy_num_iterations), disable=False):
-            if self.args.rank_based_proxy_training:
-                x, y = data.weighted_sample(self.args.proxy_num_per_minibatch, rank_coefficient=0.01)  # hyeonah
-            else:
-                x, y = data.sample(self.args.proxy_num_per_minibatch)
-            # import pdb; pdb.set_trace()
-            # if self.args.task not in ["amp", "tfbind"]:
-            #     x = self.tokenizer.encode(x)
+            # x, y = data.sample(self.args.proxy_num_per_minibatch)
+            x, y = data.weighted_sample(self.args.proxy_num_per_minibatch, rank_coefficient=0.01)
+            
             x = self.tokenizer.process(x).to(self.device)
             if self.args.proxy_arch == "mlp":
                 inp_x = F.one_hot(x, num_classes=self.num_tokens+1)[:, :, :-1].to(torch.float32)

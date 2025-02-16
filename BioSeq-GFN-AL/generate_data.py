@@ -25,5 +25,5 @@ if __name__ == '__main__':
         if local_max < 0.95: 
             break
         
-    # np.save('dataset/tfbind/local-tfbind-x-init2.npy', np.array(collected_samples)) #0 .9322764194120315
-    # np.save('dataset/tfbind/local-tfbind-y-init2.npy', collected_scores)
+    np.save('dataset/tfbind/local-tfbind-x-init.npy', np.array(collected_samples)) #0 .9322764194120315
+    np.save('dataset/tfbind/local-tfbind-y-init.npy', collected_scores)

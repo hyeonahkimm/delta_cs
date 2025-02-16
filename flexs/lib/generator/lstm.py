@@ -26,7 +26,7 @@ class LSTMDecoder(nn.Module):
         
         return out
 
-    def decode(self, sample_size, max_len, argmax=False, random_action_prob=0.0, guide_seqs=None, explore_radius=1.0, temp=1):
+    def decode(self, sample_size, max_len, argmax=False, random_action_prob=0.0, guide_seqs=None, explore_radius=1.0, temp=1, back_and_forth=False):
 
         sequences = [torch.full((sample_size, 1), self.start, dtype=torch.long).to(self.device)]
         hidden = None
@@ -42,7 +42,11 @@ class LSTMDecoder(nn.Module):
                 if guide_seqs is not None:
                     if type(explore_radius) == float:
                         explore_radius = torch.ones(prob.size(0)).to(prob.device) * explore_radius
-                    mask = torch.rand(prob.size(0)).to(prob.device) >= explore_radius
+                        
+                    if back_and_forth:
+                        mask = (torch.ones(prob.size(0)) * i / max_len).to(prob.device) < 1 - explore_radius
+                    else:
+                        mask = torch.rand(prob.size(0)).to(prob.device) >= explore_radius
                     
                     distribution = Categorical(probs=prob)
                     tth_sequences = distribution.sample()
@@ -94,14 +98,15 @@ class GFNLSTMGenerator(nn.Module):
     def forward(self, batched_sequence_data):
         return self.model(batched_sequence_data)
     
-    def decode(self, sample_size, argmax=False, random_action_prob=0.0, guide_seqs=None, explore_radius=1.0, temp=2.0):
+    def decode(self, sample_size, argmax=False, random_action_prob=0.0, guide_seqs=None, explore_radius=1.0, temp=2.0, back_and_forth=False):
         return self.model.decode(sample_size,
                                  max_len=self.max_len,
                                  argmax=argmax,
                                  random_action_prob=random_action_prob,  # Exploration for GFN-AL
                                  guide_seqs=guide_seqs,
                                  explore_radius=explore_radius,  # Trust region
-                                 temp=temp)
+                                 temp=temp,
+                                 back_and_forth=back_and_forth)
 
     def train_step(self, batched_sequence_data, reward):
         start_tokens = torch.ones(batched_sequence_data.size(0), 1).long().to(self.device) * self.model.start

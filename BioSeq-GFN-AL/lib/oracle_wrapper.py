@@ -69,15 +69,17 @@ class TFBind8Wrapper:
         # self.task = design_bench.make('TFBind8-Exact-v0')
         tf_binding_problem = flexs.landscapes.tf_binding.registry()['SIX6_REF_R1']
         self.landscape = flexs.landscapes.TFBinding(**tf_binding_problem['params'])
+        self.hard_tf = args.hard_tf
 
     def __call__(self, x):
         seqs = []
         for state in x:
             seqs.append(''.join([self.itos[i] for i in state]))
         
-        # scores = self.landscape.get_fitness(seqs)
-        # scores[scores < 0.3] = 0
-        # return scores
+        if self.hard_tf:
+            scores = self.landscape.get_fitness(seqs)
+            scores[scores < 0.3] = 0
+            return scores
         return self.landscape.get_fitness(seqs)
     
 class RNAWrapper:

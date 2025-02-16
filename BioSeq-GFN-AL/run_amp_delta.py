@@ -140,18 +140,16 @@ def filter_len(x, y, max_len):
             res[1].append(y[i])
     return res
 
+
 def get_current_radius(iter, round, args, rs=None, y=None, sigma=None):
-    if args.radius_option == 'round_linear':
+    if args.radius_option == 'linear':
         return (args.max_radius-args.min_radius) * ((round+1)/args.num_rounds) + args.min_radius
-    elif args.radius_option == 'proxy_var':
+    elif args.radius_option == 'adaptive_linear':
         linear_r = (args.max_radius-args.min_radius) * ((round+1)/args.num_rounds) + args.min_radius * torch.ones(rs.size(0)).to(rs.device)
         return (linear_r - args.sigma_coeff*sigma.view(-1)).clamp(0.1, 1)
-    elif args.radius_option == 'proxy_var_iter':
-        r = (iter+1)/args.gen_num_iterations
-        r = max(0.1, min(0.5+(round+1)/(2*args.num_rounds), r))
-        linear_r = r * torch.ones(rs.size(0)).to(rs.device)
-        return (linear_r - args.sigma_coeff*sigma.view(-1)).clamp(0.1, 1) 
-    elif args.radius_option == 'fixed':
+    elif args.radius_option == 'adaptive':
+        return (args.max_radius - args.sigma_coeff*sigma.view(-1)).clamp(0.1, 1)
+    elif args.radius_option == 'constant':
         return args.max_radius
     else:
         return 1.
@@ -593,5 +591,5 @@ def main(args):
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    assert args.radius_option in ['round_linear','proxy_var', 'proxy_var_iter', 'fixed']
+    assert args.radius_option in ['constant', 'adaptive', 'linear', 'adaptive_linear']
     main(args)
