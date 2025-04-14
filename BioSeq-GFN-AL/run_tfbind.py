@@ -30,6 +30,7 @@ parser.add_argument("--load_scores_path", default='.')
 # Multi-round
 parser.add_argument("--num_rounds", default=10, type=int)
 parser.add_argument("--task", default="tfbind", type=str)
+parser.add_argument("--hard_tf", action="store_true")
 parser.add_argument("--num_sampled_per_round", default=128, type=int)
 parser.add_argument("--vocab_size", default=4)
 parser.add_argument("--max_len", default=8)
@@ -398,7 +399,7 @@ def main(args):
     dataset = get_dataset(args, oracle)
     
     if args.use_wandb:
-        run = wandb.init(project='gfn_al', group=args.task, config=args, reinit=True)
+        run = wandb.init(project='delta-cs', group=args.task, config=args, reinit=True)
         wandb.run.name = args.name + "_" + str(args.seed) + "_" + wandb.run.id
     train(args, oracle, dataset)
     

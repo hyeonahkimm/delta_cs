@@ -699,7 +699,7 @@ def main(args):
     dataset = get_dataset(args, oracle)
     
     if args.use_wandb:
-        proj = 'delta-gfn'
+        proj = 'delta-cs'
         run = wandb.init(project=proj, group=args.task, config=args, reinit=True)
         wandb.run.name = args.name + "_" + str(args.seed) + "_" + wandb.run.id
     train(args, oracle, dataset)
