@@ -48,31 +48,23 @@ def get_args():
     if args.alg == 'pex':
         parser.add_argument('--num_random_mutations', help='number of amino acids to mutate per sequence', type=np.int32, default=2)
         parser.add_argument('--frontier_neighbor_size', help='size of the frontier neighbor', type=np.int32, default=5)
-    elif args.alg == 'gfn-al' or args.alg == 'gfn_seq_editor':
+    elif args.alg == 'gfn-al':
         parser.add_argument('--radius_option', default='none')
         parser.add_argument("--lstm_num_layers", default=2, type=int)
         parser.add_argument("--lstm_hidden_dim", default=512, type=int)
         parser.add_argument("--partition_init", default=50, type=float)
-        parser.add_argument("--gen_train_batch_size", default=64, type=int)
+        parser.add_argument("--gen_train_batch_size", default=256, type=int)
         parser.add_argument('--gen_learning_rate', help='learning rate', type=float, default=5e-4)
         parser.add_argument('--gen_Z_learning_rate', help='Z learning rate', type=float, default=1e-3)
+        parser.add_argument('--generator_train_epochs', help='number of model predictions per round', type=np.int32, default=1000)
         parser.add_argument('--max_radius', type=float, default=0.01)
         parser.add_argument('--min_radius', type=float, default=0.0)
         parser.add_argument('--sigma_coeff', type=float, default=1.0)
         parser.add_argument('--rank_coeff', type=float, default=0.01)
         parser.add_argument('--gen_sampling_temperature', type=float, default=2.0)
-        parser.add_argument('--gen_random_action_prob', type=float, default=0.001)
-        parser.add_argument('--frontier_neighbor_size', help='size of the frontier neighbor', type=np.int32, default=5)
-        parser.add_argument('--num_random_mutations', help='number of amino acids to mutate per sequence', type=np.int32, default=2)
-        parser.add_argument('--num_starting_sequences', type=np.int32, default=1)
-        parser.add_argument('--K',type=np.int32, default=5)
+        parser.add_argument('--gen_random_action_prob', type=float, default=0.001)  # for delta=1 (GFN-AL)
         parser.add_argument('--warmup_iter',type=np.int32, default=0)
-        parser.add_argument('--start_from_data', action='store_true')
-        parser.add_argument('--use_mh', action='store_true')
         parser.add_argument('--back_and_forth', action='store_true')
-    parser.add_argument('--generator_train_epochs', help='number of model predictions per round', type=np.int32, default=5000)
-    parser.add_argument('--init_model', action='store_true')
-    parser.add_argument('--use_rank_based_proxy_training', action='store_true')
     
     # MuFacNet arguments
     if args.net == 'mufacnet':
@@ -102,11 +94,11 @@ def get_initial_dataset(task_name, num_init=-1):
     else:
         raise ValueError(f"Unknown task: {task_name}")
     if num_init > 0:
-        # idx = np.argsort(y)  # lower 50ptl
-        # x, y = x[idx[:num_init]], y[idx[:num_init]]
-        x, y = x[:num_init], y[:num_init]
+        idx = np.argsort(y)  # lower 50ptl
+        x, y = x[idx[:num_init]], y[idx[:num_init]]
 
     return x, y, x[y.argmax()]
+
 
 if __name__=='__main__':
     args = get_args()
@@ -118,7 +110,7 @@ if __name__=='__main__':
         torch.cuda.manual_seed_all(args.seed)
         
     if args.use_wandb:
-        run = wandb.init(project='delta-flexs', group=args.task, config=args, reinit=True)
+        run = wandb.init(project='delta-cs-flexs', group=args.task, config=args, reinit=True)
         wandb.run.name = f"{args.alg}_{args.name}_{str(args.seed)}_{wandb.run.id}"
     
     landscape, alphabet, starting_sequence = get_landscape(args)

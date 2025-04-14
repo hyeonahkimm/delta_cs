@@ -6,8 +6,6 @@ class BioSeqDataset():
     def __init__(self, args, tokenizer, init_data):
         self.args = args
         self.rng = np.random.RandomState(142857)
-        # self._load_dataset(args.task)
-        # self.val_added = len(self.valid)
         self.tokenizer = tokenizer
     
         seqs, scores = [], []
@@ -41,7 +39,6 @@ class BioSeqDataset():
         train_seq, val_seq = [], []
         for x, score in zip(samples, scores):
             train_seq.append([self.tokenizer.stoi[c] for c in x])
-            # train_seq.append(np.array([self.tokenizer.stoi[c] for c in x]))
             train.append(score)
         
         self.train_scores = np.concatenate((self.train_scores, train), axis=0).reshape(-1)
@@ -61,8 +58,6 @@ class BioSeqDataset():
         return self._top_k(data, k)
 
     def top_k_collected(self, k):
-        # scores = np.concatenate((self.train_scores[self.train_added:], self.valid_scores[self.val_added:]))
-        # seqs = np.concatenate((self.train[self.train_added:], self.valid[self.val_added:]), axis=0)
         data = (self.train_scores[self.train_added:], self.train[self.train_added:])
         return self._top_k(data, k)
 

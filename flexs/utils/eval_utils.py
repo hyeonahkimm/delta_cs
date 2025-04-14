@@ -7,7 +7,7 @@ import itertools
 from lib.utils.dataset import BioSeqDataset
 from utils.seq_utils import hamming_distance
 
-from polyleven import levenshtein
+# from polyleven import levenshtein
 
 
 def mean_pairwise_distances(seqs):
@@ -39,7 +39,6 @@ class Runner:
         self.num_queries_per_round = args.num_queries_per_round
         self.method = args.alg
         self.use_wandb = args.use_wandb
-        self.init_model = args.init_model
         self.args = args
 
     def run(self, landscape, starting_sequence, model, explorer, starting_dataset=None):
@@ -50,14 +49,14 @@ class Runner:
         else:
             self.update_results(0, starting_dataset[0].tolist(), starting_dataset[1].tolist())
         
-        if self.method in ['gfn-al', 'gfn_seq_editor']: #update dataset too
-            explorer.dataset = BioSeqDataset(explorer.args, explorer.tokenizer, init_data=starting_dataset)
+        # update dataset too
+        explorer.dataset = BioSeqDataset(explorer.args, explorer.tokenizer, init_data=starting_dataset)
         
         for round in range(1, self.num_rounds+1):
             round_start_time = time.time()
             
             # model.train(self.sequence_buffer, self.fitness_buffer)
-            model.train_prioritized(self.sequence_buffer, self.fitness_buffer, init_model=self.init_model)
+            model.train_prioritized(self.sequence_buffer, self.fitness_buffer)  # training with rank-based prioritized sampling
                 
             sequences, model_scores = explorer.propose_sequences(self.results)
             assert len(sequences) <= self.num_queries_per_round
@@ -65,11 +64,10 @@ class Runner:
 
             round_running_time = time.time()-round_start_time
             self.update_results(round, sequences, true_scores, starting_sequence, round_running_time)
-            # self.update_results(round, sequences, true_scores, starting_sequence, round_running_time)
             
-            if self.method == 'gfn-al': #update dataset too
-                explorer.dataset.add((sequences, true_scores))
-                explorer.round = round
+            # update dataset too
+            explorer.dataset.add((sequences, true_scores))
+            explorer.round = round
               
         if self.use_wandb:
             # Convert pandas DataFrame to a wandb.Table and log it
