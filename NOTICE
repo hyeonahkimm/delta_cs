@@ -1,0 +1,9 @@
+This software includes components licensed under the MIT License and Apache License 2.0:
+
+- `BioSeq-GFN-AL/`: Contains code originally licensed under the MIT License.
+  See `BioSeq-GFN-AL/LICENSE` for details.
+
+- `flexs/`: Contains code originally licensed under the Apache License, Version 2.0.
+  See `flexs/LICENSE` for details.
+
+This combined work is licensed under the Apache License, Version 2.0.
